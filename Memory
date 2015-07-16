@@ -1,3 +1,77 @@
 This file will contain the code for the Memory game of the course. 
 
 
+# implementation of card game - Memory
+
+import simplegui
+import random
+list1 = []
+list2 = []
+deck_of_cards = [] 
+exposed = []
+state = 0
+total_moves = 0
+card_index_1, card_index_2, total_score = 0,0,0
+
+# helper function to initialize globals
+def new_game():
+    global list1, list2, deck_of_cards, exposed, total_moves
+    list1 =  range (0,8)
+    list2 =  range (0,8)
+    deck_of_cards = list1 + list2
+    random.shuffle(deck_of_cards)
+    exposed = [False] * 16
+    total_moves = 0
+     
+# define event handlers
+def mouseclick(pos):
+    # add game state logic here
+    global state, exposed, total_moves, card_index_1, card_index_2, total_score 
+    card_index = pos[0]//50 
+    if exposed[card_index] == False:
+        if state == 0: # game just started
+            card_index_1 = card_index
+            exposed[card_index] = True
+            state = 1
+        elif state == 1: # one card selected
+            card_index_2 = card_index
+            exposed[card_index] = True
+            if deck_of_cards[card_index_1] == deck_of_cards[card_index_2]:
+                total_score += 1
+            state = 2
+            total_moves += 1
+            label.set_text("Moves = " + str(total_moves))
+        else: # two cards flipped that do not match
+            if deck_of_cards[card_index_1] != deck_of_cards[card_index_2]:
+                exposed[card_index_1], exposed[card_index_2] = False, False
+            exposed[card_index] = True
+            card_index_1 = card_index
+            state = 1                
+                            
+                        
+# cards are logically 50x100 pixels in size    
+def draw(canvas):
+    global deck_of_cards, total_moves
+    for i in range(0,16):
+        if exposed[i]:
+            canvas.draw_polygon([[i*50, 0], [(i+1)*50, 0], [(i+1)*50, 100], [i*50, 100]], 1, "Black", "White")
+            canvas.draw_text(str(deck_of_cards[i]), (i*50,100), 100, "Black")	
+        else:
+            canvas.draw_polygon([[i*50, 0], [(i+1)*50, 0], [(i+1)*50, 100], [i*50, 100]], 1, "Black", "Green")
+    label.set_text("Moves = " + str(total_moves))
+            
+
+# create frame and add a button and labels
+frame = simplegui.create_frame("Memory", 800, 100)
+frame.add_button("Reset", new_game)
+label = frame.add_label("Turns = 0")
+
+# register event handlers
+frame.set_mouseclick_handler(mouseclick)
+frame.set_draw_handler(draw)
+
+# get things rolling
+new_game()
+frame.start()
+
+
